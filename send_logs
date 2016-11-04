@@ -1,0 +1,4 @@
+#!/bin/bash
+
+scp -r /home/pi/BrickPi/logs/ dg1814@shell1.doc.ic.ac.uk:~/ 
+scp -r /home/pi/BrickPi/logs/ mak514@shell1.doc.ic.ac.uk:~/ 
