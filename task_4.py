@@ -31,6 +31,7 @@ def main():
 
     print(robot.state)
     robot.motion(10)
+    print(robot.state)
 
 if __name__ == "__main__":
   main()

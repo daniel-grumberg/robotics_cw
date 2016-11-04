@@ -42,9 +42,10 @@ class Robot:
       #set the controller parameters
       interface.setMotorAngleControllerParameters(mot, motorParams)
 
+  #with statement entry
   def __enter__(self):
     return self
-
+  #with statement exit
   def __exit__(self, exc_type, exc_value, traceback):
     self.interface.terminate()
 
