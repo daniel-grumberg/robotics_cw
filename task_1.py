@@ -7,7 +7,7 @@ interface.initialize()
 
 motors = [0, 1]
 robotWheelRadius = 2.0 + 0.1
-robotWheelDistance = 13.5 + 1.15
+robotWheelDistance = 13.5 + 1.35
 
 interface.motorEnable(motors[0])
 interface.motorEnable(motors[1])
@@ -54,10 +54,6 @@ def waitUntilReached():
 interface.setMotorAngleControllerParameters(motors[0],motorParams)
 interface.setMotorAngleControllerParameters(motors[1],motorParams)
 
-moveForward(40)
-for i in range(3):
-  turnLeft(math.pi/2)
-  moveForward(40)
-
+turnLeft(4*math.pi)
 
 interface.terminate()

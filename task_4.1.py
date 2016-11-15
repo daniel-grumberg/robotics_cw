@@ -30,38 +30,46 @@ e=0.1
 f=0.01
 g=0.02
 
+
 def getRandom(x):
   return random.gauss(0, x)
 
 
+
 def main():
-
   states = [RobotState() for _ in range(100)]
-  particles = [states[i].particle() for i in range(100)]
-
-  print "drawParticles:" + str(particles)
-
-  line1 = (100, 20, 100, 520)
-  line2 = (100, 520, 600, 520)
-  print "drawLine:" + str(line1)
-  print "drawLine:" + str(line2)
 
 #will automagically terminate the interface upon exit
   with Robot(interface, motorParams, motors, robotWheelRadius,
       robotWheelDistance, 0) as robot:
-    for i in range(4):
-      for j in range(4):
-        robot.motion(10)
-        for k in range(100):
-          states[k].motionUpdate(10, getRandom(e), getRandom(f))
-          particles[k] = states[k].particle()
-        print "drawParticles:" + str(particles)
 
-      robot.rotate(math.pi/2)
-      for l in range(100):
-        states[l].rotationUpdate(math.pi/2, getRandom(g))
-        particles[l] = states[l].particle()
-      print "drawParticles:" + str(particles)
+    while(1):
+
+      print(robot.state)
+      #print(states[0])
+
+
+      x_coord = input("Enter x coord (m): ")*100
+      y_coord = input("Enter y coord (m): ")*100
+
+      robot_motion = robot.moveTo(x_coord, y_coord)
+
+      x_cum = 0
+      y_cum = 0
+      rot_cumx = 0
+      rot_cumy = 0
+
+      for i in range(100):
+        states[i].rotationUpdate(robot_motion[0], getRandom(g))
+        states[i].motionUpdate(robot_motion[1], getRandom(e), getRandom(f))
+        x_cum += states[i].x
+        y_cum += states[i].y
+        rot_cumx += math.cos(states[i].rot)
+        rot_cumy += math.sin(states[i].rot)
+
+      rot_avg = math.atan2(rot_cumy/100, rot_cumx/100)
+
+      robot.state.updateState(x_cum/100, y_cum/100, rot_avg)
 
 if __name__ == "__main__":
   main()

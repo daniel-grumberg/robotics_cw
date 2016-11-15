@@ -4,6 +4,8 @@ import math
 import sys
 import random
 from robot_controller import Robot, RobotState
+import particleDataStructures as dp
+
 
 interface = brickpi.Interface()
 interface.initialize()
@@ -30,38 +32,36 @@ e=0.1
 f=0.01
 g=0.02
 
+numberOfParticles=100
+
 def getRandom(x):
   return random.gauss(0, x)
 
+def drawParticles(ps):
+  dp.canvas.drawParticles([p.print() for p in ps])
 
 def main():
 
-  states = [RobotState() for _ in range(100)]
-  particles = [states[i].particle() for i in range(100)]
+  s_x = 0
+  s_y = 0
+  s_rot = 0
+  s_w = 1/numberOfParticles
 
-  print "drawParticles:" + str(particles)
+  particles = [Particle(s_x, s_y, s_rot, s_w) for _ in range(numberOfParticles)]
 
-  line1 = (100, 20, 100, 520)
-  line2 = (100, 520, 600, 520)
-  print "drawLine:" + str(line1)
-  print "drawLine:" + str(line2)
+  drawParticles(particles)
 
 #will automagically terminate the interface upon exit
   with Robot(interface, motorParams, motors, robotWheelRadius,
-      robotWheelDistance, 0) as robot:
-    for i in range(4):
-      for j in range(4):
-        robot.motion(10)
-        for k in range(100):
-          states[k].motionUpdate(10, getRandom(e), getRandom(f))
-          particles[k] = states[k].particle()
-        print "drawParticles:" + str(particles)
+      robotWheelDistance, 0, numberOfParticles) as robot:
 
-      robot.rotate(math.pi/2)
-      for l in range(100):
-        states[l].rotationUpdate(math.pi/2, getRandom(g))
-        particles[l] = states[l].particle()
-      print "drawParticles:" + str(particles)
+    points = [(84, 30), (180, 30), (180,54), (138, 54), (138, 168), (114, 168),
+              (114, 84), (84, 84), (84, 30)]
+
+    for x, y in points:
+      robot.moveTo(x, y)
+
+
 
 if __name__ == "__main__":
   main()
