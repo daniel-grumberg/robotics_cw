@@ -13,8 +13,8 @@ interface.initialize()
 carpet = 1
 
 motors = [0, 1]
-robotWheelRadius = 2.0 + 0.1 + carpet*0.3
-robotWheelDistance = 13.5 + 1.38 + carpet*2.85
+robotWheelRadius = 2.0 + 0.1 + carpet*0.0
+robotWheelDistance = 13.5 + 1.38 + carpet*0.8
 
 motorParams = interface.MotorAngleControllerParameters()
 motorParams.maxRotationAcceleration = 6.0
@@ -26,11 +26,6 @@ motorParams.pidParameters.maxOutput = 255
 motorParams.pidParameters.k_p = 300
 motorParams.pidParameters.k_i = 650
 motorParams.pidParameters.k_d = 5
-
-#Variation parameters
-e=0.1
-f=0.01
-g=0.02
 
 numberOfParticles=100
 

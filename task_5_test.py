@@ -14,7 +14,7 @@ carpet = 1
 
 motors = [0, 1]
 robotWheelRadius = 2.0 + 0.1 + carpet*0.0
-robotWheelDistance = 13.5 + 1.38 + carpet*2.85
+robotWheelDistance = 13.5 + 1.38 + carpet*0.8
 
 motorParams = interface.MotorAngleControllerParameters()
 motorParams.maxRotationAcceleration = 6.0
@@ -44,8 +44,8 @@ def main():
   #will automagically terminate the interface upon exit
   with Robot(interface, motorParams, motors, robotWheelRadius,
              robotWheelDistance, 0, start_point[0], start_point[1], 0, numberOfParticles) as robot:
-    for_ in range(8):
-      robot.turn(math.pi/2)
+    for _ in range(5):
+      robot.moveForward(20)
 
 
 if __name__ == "__main__":

@@ -5,8 +5,8 @@ import copy
 import random
 import particleDataStructures
 
-sigma = 2
-K = 0.2
+sigma = 1.5
+K = 0.01
 
 class Particle:
   def __init__(self, x_pos=0, y_pos=0, rotation=0, w=1):
@@ -121,11 +121,23 @@ class Robot:
     r_prime = min(r, 20)
     self.motion(r_prime)
     self.updateParticles(d_rot, r_prime)
+    self.normalise()
+    particleDataStructures.canvas.drawParticles([p.toTuple() for p in self.particles])
+    time.sleep(0.3)
     self.particles = self.resample()
+    particleDataStructures.canvas.drawParticles([p.toTuple() for p in self.particles])
     self.updateRobotState()
 
     if (r > 20):
       self.moveTo(x_coord, y_coord)
+
+  def normalise(self):
+    w_cum = 0
+    for particle in self.particles:
+      w_cum += particle.weight
+      print(particle.weight)
+    for particle in self.particles:
+      particle.weight /= w_cum
 
   def updateRobotState(self):
     x_cum = 0
@@ -148,24 +160,28 @@ class Robot:
 
   def calculateLikelihood(self, particle, z):
     m = self.calculateM(particle)
+    print(m)
+    if (m == -1):
+      return K
     return self.gaussian(1, m, sigma, z) + K
 
   def updateParticles(self, d_rot, r):
-    usReading = self.interface.getSensorValue(0)[0]
+    usReading = self.interface.getSensorValue(0)[0] + 0.5
     for particle in self.particles:
       particle.state.rotationUpdate(d_rot,random.gauss(0,0.02))
-      particle.state.motionUpdate(r, random.gauss(0,0.1), random.gauss(0,0.01))
+      particle.state.motionUpdate(r, random.gauss(0,0.5), random.gauss(0,0.01))
       self.updateWeight(particle, usReading)
 
   def updateWeight(self, particle, z):
-    return particle.weight * self.calculateLikelihood(particle, z)
+    p = self.calculateLikelihood(particle, z)
+    particle.weight = p# * particle.weight
 
   def calculateM(self, particle):
+    min_m = -1
+    min_label = 'undefined'
     for wall, label in particleDataStructures.mymap.walls:
-      Ax = min(wall[0], wall[2])
-      Ay = min(wall[1], wall[3])
-      Bx = max(wall[0], wall[2])
-      By = max(wall[1], wall[3])
+      (Ax, Ay) = min((wall[0], wall[1]), (wall[2], wall[3]))
+      (Bx, By) = max((wall[0], wall[1]), (wall[2], wall[3]))
 
       x = particle.state.x
       y = particle.state.y
@@ -173,9 +189,12 @@ class Robot:
       m = ((By - Ay)*(Ax - x) - (Bx - Ax)*(Ay - y))/((By - Ay)*math.cos(theta) - (Bx - Ax)*math.sin(theta))
       mx = x + m * math.cos(theta)
       my = y + m * math.sin(theta)
-      if (m > 0 and mx >= Ax and mx <= By and my >= Ay and my <= By):
-        return m
-    return -1
+      if (m > 0 and mx >= Ax and mx <= Bx and my >= Ay and my <= By):
+        if (min_m == -1 or m < min_m):
+          min_m = m
+          min_label = label
+    #print("Looking at wall:\t" + min_label)
+    return min_m
 
   def resample(self):
     newParticles = []
