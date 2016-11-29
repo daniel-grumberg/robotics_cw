@@ -14,12 +14,13 @@ carpet = 1
 
 motors = [0, 1]
 usMotor = 2
+touchports = [0,1]
 robotWheelRadius = 2.0 + 0.1 + carpet*0.00
 robotWheelDistance = 13.5 + 1.38 + carpet*0.8
 
 motorParams = interface.MotorAngleControllerParameters()
-motorParams.maxRotationAcceleration = 6.0
-motorParams.maxRotationSpeed = 12.0
+motorParams.maxRotationAcceleration = 15.0
+motorParams.maxRotationSpeed = 15.0
 motorParams.feedForwardGain = 255/20.0
 motorParams.minPWM = 18.0
 motorParams.pidParameters.minOutput = -255
@@ -29,8 +30,8 @@ motorParams.pidParameters.k_i = 650
 motorParams.pidParameters.k_d = 5
 
 usParams = interface.MotorAngleControllerParameters()
-usParams.maxRotationAcceleration = 5.0
-usParams.maxRotationSpeed = 5.0
+usParams.maxRotationAcceleration = 15.0
+usParams.maxRotationSpeed = 15.0
 usParams.feedForwardGain = 255/20.0
 usParams.minPWM = 18.0
 usParams.pidParameters.minOutput = -255
@@ -55,12 +56,14 @@ def main():
 
   #will automagically terminate the interface upon exit
   with Robot(interface, motorParams, motors, robotWheelRadius,
-             robotWheelDistance, 0, start_point[0], start_point[1], 0, numberOfParticles, usMotor=usMotor, usParams=usParams) as robot:
-    #robot.moveForward(29.7)
-    #robot.moveForward(-29.7)
-    robot.turn(math.pi)
-    robot.turn(math.pi)
-    robot.turn(math.pi)
+             robotWheelDistance, 0, start_point[0], start_point[1], 0, numberOfParticles, usMotor=usMotor, usParams=usParams, touchports=touchports) as robot:
+
+    robot.returnSequence()
+    #robot.interface.setMotorRotationSpeedReferences(motors, [5.0,5.0])
+    #mot = [2,1]
+    #ang = [math.pi/2,12]
+    #robot.interface.increaseMotorAngleReferences(mot,ang)
+    #robot.fastWaitUntilReached(mot)
 
 if __name__ == "__main__":
   main()

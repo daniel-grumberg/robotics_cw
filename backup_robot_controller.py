@@ -15,7 +15,7 @@ f = 0.01
 g = 0.02
 
 eps = 0.01
-bottle_eps = 10 * math.pi / 180
+bottle_eps = 0 #5 * math.pi / 180
 
 NUM=40
 
@@ -78,7 +78,6 @@ class Robot:
                usParams=None,
                touchports=None):
 
-    self.timeout = None
     self.checkTouch = False
     self.isArea = False
     self.interface = interface
@@ -166,21 +165,18 @@ class Robot:
     self.interface.increaseMotorAngleReferences(motors, angles)
     self.fastWaitUntilReached(self.motors)
 
-  def startArc(self, x, y, r=20-6, timeout=3):
-    self.timeout=timeout
+  def startArc(self, x, y, r=20-6):
     #self.rotate(0, None, selfUsTheta=math.pi/2)
-    angle = -self.lookAt(self.coordinateUsTheta - self.usTheta + math.pi / 2)
-    self.returnArc(r, usDiff=angle)
-    #self.rotate(0, math.pi / 2)
-    #self.returnArc(r)
+    #angle = -self.lookAt(self.coordinateUsTheta - self.usTheta + math.pi / 2)
+    self.rotate(0, math.pi / 2)
+    self.returnArc(r)
+    #self.returnArc(r, usDiff=angle)
     self.state.updateState(x, y, self.state.rot + math.pi/2)
     self.coordinateUsTheta = math.pi
 
-  def stopMotors(self, third=False):
+  def stopMotors(self):
     self.interface.setMotorPwm(self.motors[0], 0)
     self.interface.setMotorPwm(self.motors[1], 0)
-    if (third):
-      self.interface.setMotorPwm(self.usMotor, 0)
     time.sleep(0.02)
 
   def returnSequence(self):
@@ -467,11 +463,5 @@ class Robot:
     return True
 
   def fastWaitUntilReached(self, motors):
-    startTime = time.time()
     while not self.interface.motorAngleReferencesReached(motors):
-      print time.time() - startTime
-      if (self.timeout != None and time.time() - startTime > self.timeout):
-        self.timeout = None
-        self.stopMotors(third=True)
-        break
       time.sleep(0.1)
