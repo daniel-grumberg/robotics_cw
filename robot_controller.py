@@ -17,7 +17,7 @@ g = 0.02
 eps = 0.01
 bottle_eps = 5 * math.pi / 180
 
-NUM=33
+NUM=52
 
 US_SENSOR_PORT=2
 THRESHHOLD=0.04
@@ -160,7 +160,7 @@ class Robot:
   def returnArc(self, r=30-7.5, usDiff=None):
     #usTheta=math.pi #should be set to make face look backwards
     motors = [self.motors[0], self.motors[1]]
-    cons = 2.06#2.08
+    cons = 2.02#2.08
     angles = [self.distanceToAngle(-(r-8.125))*math.pi/cons, self.distanceToAngle(-(r+8.125))*math.pi/cons]
     if (usDiff != None):
       motors.append(self.usMotor)
@@ -424,9 +424,13 @@ class Robot:
         #    self.motion(210)
         #    print '.'
         #    return False
+        print '\t\tusReading: ' + str(usReading) + ", " + str(likelihood)
         if likelihood < THRESHHOLD:
           if num < NUM:
-            num += 1
+            if usReading == 255:
+              num += 2
+            else:
+              num += math.pow(60 / usReading, .667)
           else:
             self.isArea = False
             print 'Found Bottle'
