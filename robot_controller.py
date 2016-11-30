@@ -15,9 +15,9 @@ f = 0.01
 g = 0.02
 
 eps = 0.01
-bottle_eps = 10 * math.pi / 180
+bottle_eps = 5 * math.pi / 180
 
-NUM=40
+NUM=35
 
 US_SENSOR_PORT=2
 THRESHHOLD=0.04
@@ -155,26 +155,31 @@ class Robot:
   #        math.pi/2])
   #  self.fastWaitUntilReached(motors)
 
-  def returnArc(self, r=30-6.7, usDiff=None):
+  def returnArc(self, r=30-5, usDiff=None):
     #usTheta=math.pi #should be set to make face look backwards
     motors = [self.motors[0], self.motors[1]]
     cons = 2.02#2.08
-    angles = [self.distanceToAngle(-(r+8.125))*math.pi/cons, self.distanceToAngle(-(r-8.125))*math.pi/cons]
+    angles = [self.distanceToAngle(-(r-8.125))*math.pi/cons, self.distanceToAngle(-(r+8.125))*math.pi/cons]
     if (usDiff != None):
       motors.append(self.usMotor)
       angles.append(usDiff)
     self.interface.increaseMotorAngleReferences(motors, angles)
     self.fastWaitUntilReached(self.motors)
 
-  def startArc(self, x, y, r=20-6, timeout=3):
+  def startArc(self, x, y, r=20, timeout=None):
     self.timeout=timeout
     #self.rotate(0, None, selfUsTheta=math.pi/2)
     angle = -self.lookAt(self.coordinateUsTheta - self.usTheta + math.pi / 2)
-    self.returnArc(r, usDiff=angle)
+    motors = [self.motors[0], self.motors[1]]
+    cons = 2#2.08
+    angles = [self.distanceToAngle((r-8.125))*math.pi/cons, self.distanceToAngle((r+8.125))*math.pi/cons]
+    self.interface.increaseMotorAngleReferences(motors, angles)
+    self.fastWaitUntilReached(self.motors)
+
     #self.rotate(0, math.pi / 2)
     #self.returnArc(r)
     self.state.updateState(x, y, self.state.rot + math.pi/2)
-    self.coordinateUsTheta = math.pi
+    self.coordinateUsTheta = math.pi/2
 
   def stopMotors(self, third=False):
     self.interface.setMotorPwm(self.motors[0], 0)
@@ -186,15 +191,10 @@ class Robot:
   def returnSequence(self):
     #FUCK THE STATE OF THE ROBOT WHEN THIS IS CALLED
 
-    print self.state.rot
     rad = (-math.pi/2 - self.state.rot + math.pi) % (2*math.pi) - math.pi
-    print rad
-    self.rotate(rad, None, selfUsTheta=math.pi)
-    print self.state.rot
-    print
-    print
+    self.rotate(rad, None, selfUsTheta=0)
 
-    angle = self.distanceToAngle(100)
+    angle = self.distanceToAngle(210)
     self.interface.increaseMotorAngleReferences(self.motors,[angle, angle])
     while (not (self.interface.getSensorValue(self.touchports[0])[0]
              and self.interface.getSensorValue(self.touchports[1])[0])):
@@ -204,12 +204,14 @@ class Robot:
     self.returnArc()
 
     usReading = self.interface.getSensorValue(US_SENSOR_PORT)[0]
-    self.moveForward(-(usReading-90))
-    while (usReading > 84 + 2):
+    print '\tusReading: ' + str(usReading)
+    self.moveForward((usReading-84))
+    self.waitUntilReached(self.motors)
+    while (abs(usReading - 84) > 2):
       usReading = self.interface.getSensorValue(US_SENSOR_PORT)[0]
-      print usReading
-      print
-      time.sleep(0.1)
+      print '\tusReading: ' + str(usReading)
+      self.moveForward((usReading-84))
+      self.waitUntilReached(self.motors)
     self.stopMotors()
 
   def moveForward(self, distance):
@@ -456,7 +458,7 @@ class Robot:
           print '|'
           self.state.motionUpdate(self.calculateMotion(startMotorAngles))
           print '|'
-          self.motion(-20)
+          self.motion(-10)
           return False
 
       #usReading = self.interface.getSensorValue(US_SENSOR_PORT)
@@ -472,6 +474,7 @@ class Robot:
       print time.time() - startTime
       if (self.timeout != None and time.time() - startTime > self.timeout):
         self.timeout = None
+        print 'Stop motors now'
         self.stopMotors(third=True)
         break
       time.sleep(0.1)
