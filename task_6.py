@@ -48,7 +48,7 @@ def drawParticles(ps):
 def main():
   start_point = (84, 30, 0)
   cba = [(64, 148, math.pi, True), (64, 90, 0, False), (104, 90, 0, False), (104, 190, 0, True), (102, 64, 0, False), (102, 20, 0, True)]
-  bac = [(109, 90, 0, False), (109, 190, 0, True), (122, 59, -math.pi/2, False), (185, 59, -math.pi/2, True), (64-5, 48, math.pi, False), (64-5, 143, math.pi, True)]
+  bac = [(109, 90, 0, False, False), (109, 190, 0, True, False), (122, 59, -math.pi/2, False, False), (185, 59, -math.pi/2, True, True), (64-5, 48, math.pi, False, False), (64-5, 143, math.pi, True, True)]
 
   #will automagically terminate the interface upon exit
   with Robot(interface, motorParams, motors, robotWheelRadius,
@@ -56,8 +56,8 @@ def main():
     try:
       robot.startArc(109, 55)
       print 'Start arc finished'
-      for x, y, theta, isArea in bac:
-        robot.moveTo(x, y, usTheta=theta, isArea=isArea)
+      for x, y, theta, isArea, checkLocation in bac:
+        robot.moveTo(x, y, usTheta=theta, isArea=isArea, checkLocation=checkLocation)
       print 'Return sequence'
       robot.returnSequence()
     except KeyboardInterrupt:

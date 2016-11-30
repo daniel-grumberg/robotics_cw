@@ -19,7 +19,6 @@ bottle_eps = 5 * math.pi / 180
 
 NUM=30
 
-US_SENSOR_PORT=2
 THRESHHOLD=0.04
 
 class Particle:
@@ -107,7 +106,7 @@ class Robot:
       for tp in touchports:
         interface.sensorEnable(tp, brickpi.SensorType.SENSOR_TOUCH)
 
-    interface.sensorEnable(US_SENSOR_PORT, brickpi.SensorType.SENSOR_ULTRASONIC)
+    interface.sensorEnable(self.usMotor, brickpi.SensorType.SENSOR_ULTRASONIC)
 
   #with statement entry
   def __enter__(self):
@@ -207,7 +206,7 @@ class Robot:
     time.sleep(0.1) #ensures robot is fully rammed in wall
     self.returnArc()
 
-    usReading = self.interface.getSensorValue(US_SENSOR_PORT)[0]
+    usReading = self.interface.getSensorValue(self.usMotor)[0]
     val = (usReading - 84) / 20
     print '\tusReading: ' + str(usReading)
     self.moveForward((usReading-(84+val))*2, stopAt=84+val)
@@ -245,7 +244,18 @@ class Robot:
     angles = self.interface.getMotorAngles(self.motors)
     return (self.angleToDistance(angles[0][0]) + self.angleToDistance(angles[1][0]) - self.angleToDistance(startMotorAngles[0][0]) - self.angleToDistance(startMotorAngles[1][0])) / 2
 
-  def moveTo(self, x_coord, y_coord, usTheta=None, isArea=False):
+  def moveTo(self, x_coord, y_coord, usTheta=None, isArea=False, checkLocation=False):
+    if checkLocation:
+      usReading = self.interface.getSensorValue(self.usMotor)
+      if usReading and usReading[0] != 255:
+        usReading = usReading[0]
+        print "___________"
+        print usReading
+        m = self.calculateM(self, isRobot=True)
+        print m
+        print "------------"
+        self.motion(usReading - m)
+
     self.isArea = isArea
     if isArea:
       self.checkTouch = True
@@ -311,7 +321,7 @@ class Robot:
     usReadings = []
     i = 0
     while i < 10:
-      usReading = self.interface.getSensorValue(US_SENSOR_PORT)
+      usReading = self.interface.getSensorValue(self.usMotor)
       if (usReading):
         usReadings.append(usReading[0])
         i += 1
@@ -384,14 +394,19 @@ class Robot:
   def waitUntilReached(self, motors):
     startMotorAngles = self.interface.getMotorAngles(motors)
     diff_pos = 0
+    weight = 0
     num = 0
     isBottle = False
+    bottle_dist = 0
+
+    start_x, start_y, start_rot = self.state.x, self.state.y, self.state.rot
+
     while not self.interface.motorAngleReferencesReached(motors):
       if self.isArea:
         usReadings = []
         i = 0
         while i < 10:
-          usReading = self.interface.getSensorValue(US_SENSOR_PORT)
+          usReading = self.interface.getSensorValue(self.usMotor)
           if (usReading):
             usReadings.append(usReading[0])
             i += 1
@@ -427,11 +442,13 @@ class Robot:
         #    return False
         print '\t\tusReading: ' + str(usReading) + ", " + str(likelihood)
         if likelihood < THRESHHOLD:
-          if num < NUM:
+          if weight < NUM:
             if usReading == 255:
-              num += 5
+              weight += 5
             else:
-              num += 10*math.exp(-usReading / 15)
+              weight += 10*math.exp(-usReading / 15)
+            num +=1
+            bottle_dist += usReading
           else:
             self.isArea = False
             print 'Found Bottle'
@@ -449,12 +466,13 @@ class Robot:
             ang = (self.coordinateUsTheta - self.state.rot - bottle_eps + math.pi) % (2*math.pi) - math.pi
             self.rotate(ang, None, selfUsTheta=0)
             print '.'
-            self.motion(210)
+            bottle_dist = bottle_dist / num + 10
+            self.motion(bottle_dist)
             print '.'
             return False
         else:
-          if num > 0:
-            num -= 2
+          if weight > 0:
+            weight -= 2
 
       if self.checkTouch:
         if (self.interface.getSensorValue(self.touchports[0])[0]
@@ -479,7 +497,7 @@ class Robot:
           self.motion(-12)
           return False
 
-      #usReading = self.interface.getSensorValue(US_SENSOR_PORT)
+      #usReading = self.interface.getSensorValue(self.usMotor)
       #if (usReading):
       #  usReading = usReading[0]
       #  print self.calculateLikelihood(self, usReading, isRobot=True)
@@ -516,7 +534,7 @@ class Robot:
 
   def finalWaitUntilReached(self, motors, stopAt):
     while not self.interface.motorAngleReferencesReached(motors):
-      usReading = self.interface.getSensorValue(US_SENSOR_PORT)[0]
+      usReading = self.interface.getSensorValue(self.usMotor)[0]
       print '\tusReading: ' + str(usReading)
       if (abs(usReading - stopAt) < 3):
         self.stopMotors()
