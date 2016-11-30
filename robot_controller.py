@@ -17,7 +17,7 @@ g = 0.02
 eps = 0.01
 bottle_eps = 5 * math.pi / 180
 
-NUM=52
+NUM=30
 
 US_SENSOR_PORT=2
 THRESHHOLD=0.04
@@ -160,7 +160,7 @@ class Robot:
   def returnArc(self, r=30-7.5, usDiff=None):
     #usTheta=math.pi #should be set to make face look backwards
     motors = [self.motors[0], self.motors[1]]
-    cons = 2.02#2.08
+    cons = 2#2.08
     angles = [self.distanceToAngle(-(r-8.125))*math.pi/cons, self.distanceToAngle(-(r+8.125))*math.pi/cons]
     if (usDiff != None):
       motors.append(self.usMotor)
@@ -204,6 +204,7 @@ class Robot:
       time.sleep(0.1)
     time.sleep(0.1) #ensures robot is fully rammed in wall
     self.stopMotors()
+    time.sleep(0.1) #ensures robot is fully rammed in wall
     self.returnArc()
 
     usReading = self.interface.getSensorValue(US_SENSOR_PORT)[0]
@@ -428,9 +429,9 @@ class Robot:
         if likelihood < THRESHHOLD:
           if num < NUM:
             if usReading == 255:
-              num += 2
+              num += 5
             else:
-              num += math.pow(60 / usReading, .667)
+              num += 10*math.exp(-usReading / 15)
           else:
             self.isArea = False
             print 'Found Bottle'
@@ -453,7 +454,7 @@ class Robot:
             return False
         else:
           if num > 0:
-            num -= 1
+            num -= 2
 
       if self.checkTouch:
         if (self.interface.getSensorValue(self.touchports[0])[0]
@@ -517,7 +518,7 @@ class Robot:
     while not self.interface.motorAngleReferencesReached(motors):
       usReading = self.interface.getSensorValue(US_SENSOR_PORT)[0]
       print '\tusReading: ' + str(usReading)
-      if (abs(usReading - stopAt) < 2):
+      if (abs(usReading - stopAt) < 3):
         self.stopMotors()
         break
       time.sleep(0.01)

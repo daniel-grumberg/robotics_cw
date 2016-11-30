@@ -5,7 +5,7 @@ from BrickPi import *   #import BrickPi.py file to use BrickPi operations
 
 BrickPiSetup()  # setup the serial port for communication
 
-Color_Sensor_Port = PORT_3										# Setup the sensor on Port 1.
+Color_Sensor_Port = PORT_4										# Setup the sensor on Port 1.
 
 while True:
   BrickPi.SensorType[Color_Sensor_Port] = TYPE_SENSOR_COLOR_GREEN   #Set the type of sensor, set it to function as a Red LED.
