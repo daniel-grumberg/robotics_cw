@@ -15,8 +15,8 @@ carpet = 1
 motors = [0, 1]
 usMotor = 2
 touchports = [0,1]
-robotWheelRadius = 2.0 + 0.1 + carpet*0.00
-robotWheelDistance = 13.5 + 1.38 + carpet*0.8
+robotWheelRadius = (2.0 + 0.1 + carpet*0.00)*1.35-0.1
+robotWheelDistance = 13.5 + 1.38 + carpet*0.8 + 1.0
 
 motorParams = interface.MotorAngleControllerParameters()
 motorParams.maxRotationAcceleration = 15.0
